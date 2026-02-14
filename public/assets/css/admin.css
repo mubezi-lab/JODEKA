@@ -1,0 +1,313 @@
+/* ================================
+   GLOBAL RESET
+================================ */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+}
+
+/* ================================
+   HEADER
+================================ */
+
+.topbar {
+    background: #0f172a;
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.menu-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+/* ================================
+   NOTIFICATION
+================================ */
+
+.notification-wrapper {
+    position: relative;
+}
+
+.notification {
+    cursor: pointer;
+    font-size: 18px;
+    position: relative;
+}
+
+.badge {
+    position: absolute;
+    top: -6px;
+    right: -10px;
+    background: red;
+    color: white;
+    font-size: 11px;
+    padding: 3px 6px;
+    border-radius: 50%;
+}
+
+.notification-dropdown {
+    position: absolute;
+    right: 0;
+    top: 38px;
+    background: white;
+    width: 230px;
+    border-radius: 6px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    display: none;
+    overflow: hidden;
+    z-index: 2000;
+}
+
+.notification-dropdown a {
+    display: block;
+    padding: 12px;
+    text-decoration: none;
+    color: #111;
+    border-bottom: 1px solid #eee;
+}
+
+.notification-dropdown a:hover {
+    background: #f1f5f9;
+}
+
+.notification-dropdown.active {
+    display: block;
+}
+
+/* ================================
+   SIDEBAR (FULL WIDTH MOBILE)
+================================ */
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: #0f172a;
+    padding-top: 70px;
+    transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar.active {
+    left: 0;
+}
+
+/* Close Button */
+.close-btn {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+/* Sidebar Links */
+.sidebar a {
+    text-decoration: none;
+    color: #e2e8f0;
+    padding: 15px 22px;
+    font-size: 15px;
+    font-weight: 500;
+    border-left: 3px solid transparent;
+    transition: 0.2s ease;
+}
+
+.sidebar a:hover {
+    background: #1e293b;
+    border-left: 3px solid #22c55e;
+    color: white;
+}
+
+/* ================================
+   OVERLAY BACKDROP
+================================ */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(2px);
+    display: none;
+    z-index: 900;
+}
+
+.overlay.active {
+    display: block;
+}
+
+/* ================================
+   CONTENT
+================================ */
+
+.content {
+    padding: 20px;
+}
+
+/* ================================
+   TABS
+================================ */
+
+.tabs {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    padding: 10px 15px;
+    border: none;
+    background: #e2e8f0;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.tab-btn.active {
+    background: #0f172a;
+    color: white;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* ================================
+   CARDS
+================================ */
+
+.cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: white;
+    padding: 18px;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
+
+/* ================================
+   FORMS
+================================ */
+
+input,
+select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+button {
+    background: #0f172a;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+/* ================================
+   TABLE
+================================ */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    font-size: 14px;
+}
+
+th {
+    background: #f1f5f9;
+}
+
+/* ================================
+   CHART FIX (MOBILE)
+================================ */
+
+.chart-container {
+    position: relative;
+    height: 300px;
+}
+
+canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* ================================
+   DESKTOP VIEW
+================================ */
+
+@media (min-width: 768px) {
+
+    .layout {
+        display: flex;
+    }
+
+    .sidebar {
+        position: relative;
+        width: 220px;
+        left: 0;
+        height: auto;
+    }
+
+    .overlay {
+        display: none !important;
+    }
+
+    .cards {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
