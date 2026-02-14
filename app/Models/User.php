@@ -1,18 +1,21 @@
 <?php
 
-class User {
-
+class User
+{
     private $db;
 
-    public function __construct($database)
+    public function __construct()
     {
-        $this->db = $database;
+        $this->db = new Database();
     }
 
     public function findByEmail($email)
     {
-        return $this->db
-            ->query("SELECT * FROM users WHERE email = ?", [$email])
-            ->fetch(PDO::FETCH_ASSOC);
+        $stmt = $this->db->query(
+            "SELECT * FROM users WHERE email = ?",
+            [$email]
+        );
+
+        return $stmt->fetch();
     }
 }

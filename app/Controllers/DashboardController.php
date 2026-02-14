@@ -1,70 +1,25 @@
 <?php
 
-// class DashboardController extends Controller {
-
-//     public function index()
-//     {
-//         RoleMiddleware::requireLogin();
-
-//         $role = $_SESSION['user']['role'];
-
-//         if ($role === 'admin') {
-//             $this->view('dashboard/admin');
-//         } 
-//         elseif ($role === 'manager') {
-//             $this->view('dashboard/manager');
-//         } 
-//         else {
-//             $this->view('dashboard/staff');
-//         }
-//     }
-// }
-
-
-
-
-
-
-
-class DashboardController extends Controller {
-
-    public function index()
+class DashboardController extends Controller
+{
+    public function admin()
     {
-        // Hakikisha user amelogin
-        RoleMiddleware::requireLogin();
+        $this->middleware('RoleMiddleware')->handle(['admin']);
 
-        // Chukua role
-        $role = $_SESSION['user']['role'] ?? null;
+        $this->view('dashboard/admin', [], 'admin');
+    }
 
-        if (!$role) {
-            $this->redirect('/login');
-        }
+    public function manager()
+    {
+        $this->middleware('RoleMiddleware')->handle(['manager']);
 
-        // Admin Dashboard
-        if ($role === 'admin') {
+        $this->view('dashboard/adminPerfect', [], 'adminPerfect');
+    }
 
-            // Sample data (baadaye tutatoa DB)
-            $data = [
-                'pageTitle' => 'Admin Dashboard',
-                'userName'  => $_SESSION['user']['name'] ?? 'Admin'
-            ];
+    public function employee()
+    {
+        $this->middleware('RoleMiddleware')->handle(['staff']);
 
-            $this->view('dashboard/admin', $data, 'admin');
-        }
-
-        // Manager Dashboard
-        elseif ($role === 'manager') {
-            $this->view('dashboard/manager');
-        }
-
-        // Employee Dashboard
-        elseif ($role === 'employee') {
-            $this->view('dashboard/staff');
-        }
-
-        // Kama role haijulikani
-        else {
-            $this->redirect('/login');
-        }
+        $this->view('dashboard/staff');
     }
 }

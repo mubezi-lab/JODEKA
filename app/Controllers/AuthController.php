@@ -1,55 +1,112 @@
 <?php
 
-class AuthController extends Controller {
+class AuthController extends Controller
+{
+    /**
+     * Default route → http://jodeka.business/
+     */
+    public function index()
+    {
+        // Kama user tayari ame-login, mpeleke dashboard yake
+        if (isset($_SESSION['user'])) {
 
+            switch ($_SESSION['user']['role']) {
+                case 'admin':
+                    $this->redirect('admin');
+                    break;
+
+                case 'manager':
+                    $this->redirect('manager');
+                    break;
+
+                case 'staff':
+                    $this->redirect('employee');
+                    break;
+            }
+        }
+
+        // Kama hajalogin, show login page
+        $this->view('auth/login', [
+            'csrf' => $this->csrfToken()
+        ]);
+    }
+
+    /**
+     * Handle Login
+     */
     public function login()
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('auth/index');
+        }
 
-            if (!$this->validateCSRF()) {
-                die("Invalid CSRF Token");
-            }
+        if (!$this->validateCSRF()) {
+            die("Invalid CSRF Token");
+        }
 
-            $email = trim($_POST['email'] ?? '');
-            $password = $_POST['password'] ?? '';
+        $email = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
 
-            $userModel = new User($this->db);
-            $user = $userModel->findByEmail($email);
+        if (empty($email) || empty($password)) {
+            $this->view('auth/login', [
+                'error' => 'Email and Password are required',
+                'csrf'  => $this->csrfToken()
+            ]);
+            return;
+        }
 
-            if ($user && password_verify($password, $user['password'])) {
+        $userModel = $this->model('User');
+        $user = $userModel->findByEmail($email);
 
-                session_regenerate_id(true);
+        if ($user && password_verify($password, $user['password'])) {
 
-                unset($_SESSION['csrf_token']); // clear after success
+            session_regenerate_id(true);
+            unset($_SESSION['csrf_token']);
 
-                $_SESSION['user'] = [
-                    'id' => $user['id'],
-                    'name' => $user['name'],
-                    'email' => $user['email'],
-                    'role' => $user['role']
-                ];
+            $_SESSION['user'] = [
+                'id'    => $user['id'],
+                'name'  => $user['name'],
+                'email' => $user['email'],
+                'role'  => $user['role']
+            ];
 
-                $this->redirect('dashboard');
+            // 🔥 Role-based clean redirect
+            switch ($user['role']) {
 
-            } else {
+                case 'admin':
+                    $this->redirect('admin');
+                    break;
 
-                $this->view('auth/login', [
-                    'error' => 'Invalid email or password',
-                    'csrf' => $this->csrfToken()
-                ]);
+                case 'manager':
+                    $this->redirect('manager');
+                    break;
+
+                case 'staff':
+                    $this->redirect('employee');
+                    break;
+
+                default:
+                    $this->redirect('auth/index');
+                    break;
             }
 
         } else {
 
             $this->view('auth/login', [
-                'csrf' => $this->csrfToken()
+                'error' => 'Invalid email or password',
+                'csrf'  => $this->csrfToken()
             ]);
         }
     }
 
+    /**
+     * Logout
+     */
     public function logout()
     {
+        session_unset();
         session_destroy();
-        $this->redirect('login');
+
+        $this->redirect('auth/index');
     }
 }

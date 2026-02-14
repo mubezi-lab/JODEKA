@@ -1,22 +1,16 @@
 <?php
 
-class RoleMiddleware {
-
-    public static function requireLogin()
+class RoleMiddleware
+{
+    public function handle(array $roles)
     {
         if (!isset($_SESSION['user'])) {
-            header("Location: login");
+            header("Location: /auth/index");
             exit;
         }
-    }
 
-    public static function requireRole($role)
-    {
-        self::requireLogin();
-
-        if ($_SESSION['user']['role'] !== $role) {
-            http_response_code(403);
-            die("Access Denied");
+        if (!in_array($_SESSION['user']['role'], $roles)) {
+            die("Access denied");
         }
     }
 }

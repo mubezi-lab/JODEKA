@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 
@@ -33,10 +33,10 @@
         <?php endif; ?>
 
         <!-- FORM -->
-        <form method="POST" action="login">
+        <form method="POST" action="/auth/login">
 
             <!-- CSRF TOKEN -->
-            <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf ?? '') ?>">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf ?? '') ?>">
 
             <!-- EMAIL -->
             <div class="floating-group">

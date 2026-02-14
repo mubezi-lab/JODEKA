@@ -1,55 +1,7 @@
 <?php
 
-// class Controller {
-
-//     protected $db;
-
-//     public function __construct()
-//     {
-//         $this->db = new Database();
-//     }
-
-//     protected function view($path, $data = [])
-//     {
-//         extract($data);
-//         require BASE_PATH . "/views/" . $path . ".php";
-//     }
-
-//     protected function redirect($url)
-//     {
-//         header("Location: " . $url);
-//         exit;
-//     }
-
-//     // ===== STABLE CSRF =====
-//     protected function csrfToken()
-//     {
-//         if (!isset($_SESSION['csrf_token'])) {
-//             $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-//         }
-
-//         return $_SESSION['csrf_token'];
-//     }
-
-//     protected function validateCSRF()
-//     {
-//         if (
-//             !isset($_POST['csrf']) ||
-//             !isset($_SESSION['csrf_token']) ||
-//             !hash_equals($_SESSION['csrf_token'], $_POST['csrf'])
-//         ) {
-//             return false;
-//         }
-
-//         return true;
-//     }
-// }
-
-
-
-
-class Controller {
-
+class Controller
+{
     protected $db;
 
     public function __construct()
@@ -58,59 +10,70 @@ class Controller {
     }
 
     /**
+     * Load Model
+     */
+    protected function model($model)
+    {
+        $file = BASE_PATH . '/app/Models/' . $model . '.php';
+
+        if (!file_exists($file)) {
+            die("Model not found: " . $model);
+        }
+
+        require_once $file;
+
+        return new $model();
+    }
+
+    /**
+     * Load Middleware
+     */
+    protected function middleware($middleware)
+    {
+        $file = BASE_PATH . '/app/Middleware/' . $middleware . '.php';
+
+        if (!file_exists($file)) {
+            die("Middleware not found: " . $middleware);
+        }
+
+        require_once $file;
+
+        return new $middleware();
+    }
+
+    /**
      * Render View
-     * 
-     * @param string $path   mfano: dashboard/admin
-     * @param array  $data   data za kupitisha kwenye view
-     * @param string|null $layout mfano: 'admin'
      */
     protected function view($path, $data = [], $layout = null)
     {
-        // Extract data to variables
-        if (!empty($data)) {
-            extract($data, EXTR_SKIP);
-        }
+        extract($data);
 
-        // Tengeneza full path ya view
-        $viewFile = BASE_PATH . "/views/" . $path . ".php";
+        $viewFile = BASE_PATH . '/views/' . $path . '.php';
 
-        // Hakikisha view ipo
         if (!file_exists($viewFile)) {
-            die("❌ View not found: " . $viewFile);
+            die("View not found: " . $path);
         }
 
-        // Kama layout imetolewa
         if ($layout !== null) {
-
-            $layoutFile = BASE_PATH . "/views/layouts/" . $layout . ".php";
+            $layoutFile = BASE_PATH . '/views/layouts/' . $layout . '.php';
 
             if (!file_exists($layoutFile)) {
-                die("❌ Layout not found: " . $layoutFile);
+                die("Layout not found: " . $layout);
             }
 
-            // Variable itakayotumika ndani ya layout
             $view = $viewFile;
-
             require $layoutFile;
-
         } else {
-            // Hakuna layout, render direct
             require $viewFile;
         }
     }
 
-    /**
-     * Redirect
-     */
     protected function redirect($url)
     {
-        header("Location: " . $url);
+        header("Location: /" . ltrim($url, '/'));
         exit;
     }
 
-    /**
-     * CSRF Token Generator
-     */
     protected function csrfToken()
     {
         if (!isset($_SESSION['csrf_token'])) {
@@ -120,19 +83,9 @@ class Controller {
         return $_SESSION['csrf_token'];
     }
 
-    /**
-     * Validate CSRF
-     */
     protected function validateCSRF()
     {
-        if (
-            !isset($_POST['csrf']) ||
-            !isset($_SESSION['csrf_token']) ||
-            !hash_equals($_SESSION['csrf_token'], $_POST['csrf'])
-        ) {
-            return false;
-        }
-
-        return true;
+        return isset($_POST['csrf_token'], $_SESSION['csrf_token']) &&
+               hash_equals($_SESSION['csrf_token'], $_POST['csrf_token']);
     }
 }
