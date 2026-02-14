@@ -47,7 +47,7 @@
         <a href="/stock">Stock</a>
         <a href="/reports">Reports</a>
         <a href="/alerts">Alerts</a>
-        <a href="/logout">Logout</a>
+        <a href="/auth/logout">Logout</a>
     </aside>
 
     <div id="overlay" class="overlay"></div>
