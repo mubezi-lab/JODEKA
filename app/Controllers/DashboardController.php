@@ -6,7 +6,16 @@ class DashboardController extends Controller
     {
         $this->middleware('RoleMiddleware')->handle(['admin']);
 
-        $this->view('dashboard/admin', [], 'admin');
+        $userModel = $this->model('User');
+        $departments = $userModel->getDepartments();
+
+        $this->view('dashboard/admin', [
+            'csrf' => $this->csrfToken(),
+            'departments' => $departments,
+            'error' => $_SESSION['form_error'] ?? null
+        ], 'admin');
+
+        unset($_SESSION['form_error']);
     }
 
     public function manager()
