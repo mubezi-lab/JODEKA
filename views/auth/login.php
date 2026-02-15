@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login | JODEKA System</title>
+    <title>JODEKA SYSTEM</title>
 
     <!-- Viewport (MUHIMU kwa iPhone) -->
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -22,7 +22,7 @@
         <!-- HEADER -->
         <div class="login-header">
             <i class="fa-solid fa-building"></i>
-            <h1>JODEKA System</h1>
+            <h1>JODEKA</h1>
         </div>
 
         <!-- ERROR -->

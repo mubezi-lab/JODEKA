@@ -7,25 +7,10 @@ class AuthController extends Controller
      */
     public function index()
     {
-        // Kama user tayari ame-login, mpeleke dashboard yake
         if (isset($_SESSION['user'])) {
-
-            switch ($_SESSION['user']['role']) {
-                case 'admin':
-                    $this->redirect('admin');
-                    break;
-
-                case 'manager':
-                    $this->redirect('manager');
-                    break;
-
-                case 'staff':
-                    $this->redirect('employee');
-                    break;
-            }
+            $this->redirectUser($_SESSION['user']);
         }
 
-        // Kama hajalogin, show login page
         $this->view('auth/login', [
             'csrf' => $this->csrfToken()
         ]);
@@ -64,31 +49,14 @@ class AuthController extends Controller
             unset($_SESSION['csrf_token']);
 
             $_SESSION['user'] = [
-                'id'    => $user['id'],
-                'name'  => $user['name'],
-                'email' => $user['email'],
-                'role'  => $user['role']
+                'id'         => $user['id'],
+                'name'       => $user['name'],
+                'email'      => $user['email'],
+                'role'       => $user['role'],
+                'department' => $user['department'] ?? null
             ];
 
-            // 🔥 Role-based clean redirect
-            switch ($user['role']) {
-
-                case 'admin':
-                    $this->redirect('admin');
-                    break;
-
-                case 'manager':
-                    $this->redirect('manager');
-                    break;
-
-                case 'staff':
-                    $this->redirect('employee');
-                    break;
-
-                default:
-                    $this->redirect('auth/index');
-                    break;
-            }
+            $this->redirectUser($_SESSION['user']);
 
         } else {
 
@@ -100,14 +68,55 @@ class AuthController extends Controller
     }
 
     /**
+     * Central Redirect Logic
+     */
+    private function redirectUser($user)
+    {
+        // Admin
+        if ($user['role'] === 'admin') {
+            $this->redirect('admin');
+        }
+
+        // Manager
+        if ($user['role'] === 'manager') {
+            $this->redirect('manager');
+        }
+
+        // Staff (Only specific departments have dashboards)
+        if ($user['role'] === 'staff' && $user['department']) {
+
+            switch ($user['department']) {
+
+                case 'Bandani':
+                    $this->redirect('bandani');
+                    break;
+
+                case 'Sokoni':
+                    $this->redirect('sokoni');
+                    break;
+
+                case 'Stand':
+                    $this->redirect('stand');
+                    break;
+
+                default:
+                    // Staff without assigned dashboard
+                    session_destroy();
+                    die('No dashboard assigned to your department.');
+            }
+        }
+
+        // Fallback
+        $this->redirect('auth/index');
+    }
+
+    /**
      * Logout
      */
     public function logout()
     {
-        // Clear all session data
         $_SESSION = [];
 
-        // Destroy session cookie (important)
         if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
             setcookie(
@@ -121,10 +130,8 @@ class AuthController extends Controller
             );
         }
 
-        // Destroy session
         session_destroy();
 
-        // Redirect to login (root)
         $this->redirect('/');
     }
 }

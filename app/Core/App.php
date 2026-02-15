@@ -10,44 +10,99 @@ class App
     {
         $url = $this->parseUrl();
 
-        // CUSTOM ROLE ROUTES
         if (!empty($url[0])) {
 
-            switch ($url[0]) {
-                case 'admin':
-                case 'manager':
-                case 'employee':
-                    $this->controller = 'DashboardController';
-                    $this->method = $url[0];
-                    break;
+            $firstSegment = strtolower($url[0]);
 
-                default:
-                    $controllerName = ucfirst($url[0]) . 'Controller';
-                    $controllerFile = BASE_PATH . '/app/Controllers/' . $controllerName . '.php';
+            /*
+            |--------------------------------------------------------------------------
+            | 🔐 AUTH ROUTES
+            |--------------------------------------------------------------------------
+            */
+            if ($firstSegment === 'login' || $firstSegment === 'logout') {
 
-                    if (file_exists($controllerFile)) {
-                        $this->controller = $controllerName;
-                    }
-                    break;
+                require_once '../app/Controllers/AuthController.php';
+                $controller = new AuthController;
+
+                call_user_func_array([$controller, $firstSegment], []);
+                return;
             }
+
+            /*
+            |--------------------------------------------------------------------------
+            | 👑 DASHBOARD ROUTES (ADMIN & MANAGER FIX)
+            |--------------------------------------------------------------------------
+            */
+            if ($firstSegment === 'admin' || $firstSegment === 'manager') {
+
+                require_once '../app/Controllers/DashboardController.php';
+                $controller = new DashboardController;
+
+                call_user_func_array([$controller, $firstSegment], []);
+                return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | NORMAL CONTROLLER ROUTING
+            |--------------------------------------------------------------------------
+            */
+            $controllerName = ucfirst($firstSegment) . 'Controller';
+            $controllerPath = '../app/Controllers/' . $controllerName . '.php';
+
+            if (file_exists($controllerPath)) {
+
+                require_once $controllerPath;
+                $controller = new $controllerName;
+
+                unset($url[0]);
+
+                $method = 'index';
+
+                if (isset($url[1]) && method_exists($controller, $url[1])) {
+                    $method = $url[1];
+                    unset($url[1]);
+                }
+
+                $params = $url ? array_values($url) : [];
+
+                call_user_func_array([$controller, $method], $params);
+                return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | 🔥 BUSINESS FALLBACK
+            |--------------------------------------------------------------------------
+            */
+            require_once '../app/Controllers/BusinessController.php';
+            $controller = new BusinessController;
+
+            call_user_func_array([$controller, 'index'], [$firstSegment]);
+            return;
         }
 
-        require_once BASE_PATH . '/app/Controllers/' . $this->controller . '.php';
-        $this->controller = new $this->controller;
+        /*
+        |--------------------------------------------------------------------------
+        | DEFAULT ROUTE
+        |--------------------------------------------------------------------------
+        */
+        require_once '../app/Controllers/AuthController.php';
+        $controller = new AuthController;
 
-        if (isset($url[1]) && method_exists($this->controller, $url[1])) {
-            $this->method = $url[1];
-        }
-
-        $this->params = array_slice($url, 2);
-
-        call_user_func_array([$this->controller, $this->method], $this->params);
+        call_user_func_array([$controller, 'index'], []);
     }
 
     private function parseUrl()
     {
         if (isset($_GET['url'])) {
-            return explode('/', trim($_GET['url'], '/'));
+            return explode(
+                '/',
+                filter_var(
+                    rtrim($_GET['url'], '/'),
+                    FILTER_SANITIZE_URL
+                )
+            );
         }
 
         return [];

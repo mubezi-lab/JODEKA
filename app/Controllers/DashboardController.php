@@ -2,6 +2,9 @@
 
 class DashboardController extends Controller
 {
+    /**
+     * Admin Dashboard
+     */
     public function admin()
     {
         $this->middleware('RoleMiddleware')->handle(['admin']);
@@ -18,17 +21,13 @@ class DashboardController extends Controller
         unset($_SESSION['form_error']);
     }
 
+    /**
+     * Manager Dashboard
+     */
     public function manager()
     {
         $this->middleware('RoleMiddleware')->handle(['manager']);
 
-        $this->view('dashboard/adminPerfect', [], 'adminPerfect');
-    }
-
-    public function employee()
-    {
-        $this->middleware('RoleMiddleware')->handle(['staff']);
-
-        $this->view('dashboard/staff');
+        $this->view('dashboard/manager', [], 'admin');
     }
 }
