@@ -47,4 +47,6 @@ class BusinessController extends Controller
 
         die('Access Denied');
     }
+
+    
 }
