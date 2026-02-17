@@ -13,22 +13,40 @@
     <div class="logo">JODEKA</div>
 
     <div class="header-right">
+
+        <!-- 🔔 NOTIFICATION SYSTEM -->
         <div class="notification-wrapper">
             <div class="notification" id="notificationToggle">
                 🔔
-                <span class="badge"><?= $notificationCount ?? 3 ?></span>
+                <span class="badge">
+                    <?= $notificationCount ?? 0 ?>
+                </span>
             </div>
 
             <div class="notification-dropdown" id="notificationDropdown">
-                <a href="#">📦 Order from Duka</a>
+
+                <!-- 📦 Dynamic Order Notification -->
+                <?php if (!empty($notificationCount) && $notificationCount > 0): ?>
+                    <a href="/orders">
+                        📦 <?= $notificationCount ?> Pending Orders
+                    </a>
+                <?php else: ?>
+                    <a href="#">
+                        📦 No New Orders
+                    </a>
+                <?php endif; ?>
+
+                <!-- Other static alerts (can be dynamic later) -->
                 <a href="#">💉 Vaccination Alert</a>
                 <a href="#">⚠ Low Stock</a>
+
             </div>
         </div>
 
         <div class="user">
             <img src="/assets/img/user.png" alt="User">
         </div>
+
     </div>
 </header>
 
@@ -47,7 +65,7 @@
         <a href="/stock">Stock</a>
         <a href="/reports">Reports</a>
         <a href="/alerts">Alerts</a>
-        <a href="/auth/logout">Logout</a>
+        <a href="/logout">Logout</a>
     </aside>
 
     <div id="overlay" class="overlay"></div>

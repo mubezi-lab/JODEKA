@@ -79,7 +79,8 @@ if (ctx) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false
+            maintainAspectRatio: false,
+            animation: { duration: 1200 }
         }
     });
 }
@@ -87,65 +88,86 @@ if (ctx) {
 
 /* ================================
    BANDANI SPEEDOMETER GAUGE
+   (UPDATED SECTION ONLY)
 ================================ */
 
-const speedGauge = document.getElementById("monthlyBreakdownChart");
+function createBandaniSpeedometer(canvas) {
 
-if (speedGauge) {
+    const dailyEstimate = 30000;
+    const today = new Date().getDate();
+    const monthlySales = dailyEstimate * today;
+    const monthlyTarget = 1200000;
 
-    const totalSales = 1250000;
+    const finalPercentage = Math.min(
+        (monthlySales / monthlyTarget) * 100,
+        100
+    );
 
-    const mshahara = 125000;
-    const umeme = 40000;
-    const kodi = 80000;
+    let performanceColor = "#dc2626";
+    if (finalPercentage >= 40) performanceColor = "#f59e0b";
+    if (finalPercentage >= 70) performanceColor = "#16a34a";
 
-    const used = mshahara + umeme + kodi;
-    const remaining = totalSales - used;
+    let animatedValue = 0;
 
-    let percentage = (remaining / totalSales) * 100;
-    percentage = Math.max(0, Math.min(100, percentage));
-
-    const gaugeNeedle = {
-        id: "gaugeNeedle",
-        afterDatasetDraw(chart) {
+    const gaugePlugin = {
+        id: "gaugePlugin",
+        afterDraw(chart) {
 
             const { ctx } = chart;
             const meta = chart.getDatasetMeta(0);
             const cx = meta.data[0].x;
             const cy = meta.data[0].y;
 
-            const angle = Math.PI + (percentage / 100) * Math.PI;
+            animatedValue += (finalPercentage - animatedValue) * 0.06;
 
+            const angle = Math.PI + (animatedValue / 100) * Math.PI;
+
+            /* Draw needle */
             ctx.save();
             ctx.translate(cx, cy);
             ctx.rotate(angle);
 
             ctx.beginPath();
-            ctx.moveTo(0, -2);
+            ctx.moveTo(0, -3);
             ctx.lineTo(chart.width / 4, 0);
-            ctx.lineTo(0, 2);
+            ctx.lineTo(0, 3);
             ctx.fillStyle = "#111";
             ctx.fill();
-
             ctx.restore();
 
+            /* Center pivot */
             ctx.beginPath();
             ctx.arc(cx, cy, 6, 0, 2 * Math.PI);
             ctx.fillStyle = "#111";
             ctx.fill();
+
+            /* Percentage text moved lower */
+            ctx.save();
+            ctx.font = "bold 22px Arial";
+            ctx.fillStyle = performanceColor;
+            ctx.textAlign = "center";
+            ctx.fillText(
+                Math.round(animatedValue) + "%",
+                cx,
+                cy + 28  // moved lower
+            );
+            ctx.restore();
+
+            if (Math.abs(animatedValue - finalPercentage) > 0.5) {
+                requestAnimationFrame(() => chart.draw());
+            }
         }
     };
 
-    new Chart(speedGauge, {
+    new Chart(canvas, {
         type: "doughnut",
         data: {
-            labels: ["Salary","Electricity","Rent","Remaining"],
             datasets: [{
-                data: [mshahara, umeme, kodi, remaining],
+                data: [25, 25, 25, 25],
                 backgroundColor: [
                     "#dc2626",
                     "#f59e0b",
-                    "#3b82f6",
+                    "#22c55e",
                     "#16a34a"
                 ],
                 borderWidth: 0
@@ -155,15 +177,14 @@ if (speedGauge) {
             rotation: -90,
             circumference: 180,
             cutout: "70%",
-            plugins: {
-                legend: {
-                    position: "bottom"
-                }
-            },
             responsive: true,
-            maintainAspectRatio: false
+            maintainAspectRatio: false,
+            animation: false,
+            plugins: {
+                legend: { display: false }
+            }
         },
-        plugins: [gaugeNeedle]
+        plugins: [gaugePlugin]
     });
 }
 
@@ -172,10 +193,9 @@ if (speedGauge) {
    BANDANI WEEKLY SALES
 ================================ */
 
-const weekly = document.getElementById("weeklySalesChart");
+function createWeeklySalesChart(canvas) {
 
-if (weekly) {
-    new Chart(weekly, {
+    new Chart(canvas, {
         type: "bar",
         data: {
             labels: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
@@ -187,7 +207,58 @@ if (weekly) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false
+            maintainAspectRatio: false,
+            animation: {
+                duration: 1500,
+                easing: "easeOutQuart"
+            }
         }
     });
 }
+
+
+/* ================================
+   INTERSECTION OBSERVER
+   (Gauge delayed only)
+================================ */
+
+const observer = new IntersectionObserver((entries, obs) => {
+
+    entries.forEach(entry => {
+
+        if (entry.isIntersecting) {
+
+            const canvas = entry.target;
+
+            if (!canvas.dataset.rendered) {
+
+                if (canvas.id === "monthlyBreakdownChart") {
+
+                    // Delay speedometer start by 10 seconds
+                    setTimeout(() => {
+                        createBandaniSpeedometer(canvas);
+                    }, 500);
+                }
+
+                if (canvas.id === "weeklySalesChart") {
+                    createWeeklySalesChart(canvas);
+                }
+
+                canvas.dataset.rendered = "true";
+                canvas.classList.add("chart-visible");
+            }
+
+            obs.unobserve(canvas);
+        }
+
+    });
+
+}, { threshold: 0.3 });
+
+
+/* Attach observer safely */
+const bandaniGauge = document.getElementById("monthlyBreakdownChart");
+const weeklyChart = document.getElementById("weeklySalesChart");
+
+if (bandaniGauge) observer.observe(bandaniGauge);
+if (weeklyChart) observer.observe(weeklyChart);

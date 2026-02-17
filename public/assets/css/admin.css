@@ -488,3 +488,50 @@ canvas {
     position: relative;
     height: 280px;
 }
+
+
+/* =========================================
+   SCROLL CHART FADE-IN EFFECT
+   Charts appear smoothly when rendered
+========================================= */
+
+canvas.chart-animate {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+canvas.chart-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+/* =========================================
+   GAUGE CUSTOM LEGEND
+========================================= */
+
+.gauge-legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.gauge-legend div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend-box {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+}
+
+.legend-box.red { background: #dc2626; }
+.legend-box.yellow { background: #f59e0b; }
+.legend-box.green-light { background: #22c55e; }
+.legend-box.green-dark { background: #16a34a; }

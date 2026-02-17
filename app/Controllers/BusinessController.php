@@ -2,8 +2,14 @@
 
 class BusinessController extends Controller
 {
+    /**
+     * Handle all business dashboard pages dynamically
+     */
     public function index($slug = null)
     {
+        // ================================
+        // AUTH CHECK
+        // ================================
         if (!isset($_SESSION['user'])) {
             $this->redirect('/');
         }
@@ -15,14 +21,18 @@ class BusinessController extends Controller
         $slug = strtolower($slug);
         $user = $_SESSION['user'];
 
-        // Hakikisha view ipo
+        // ================================
+        // VERIFY VIEW EXISTS
+        // ================================
         $viewPath = BASE_PATH . "/views/business/{$slug}.php";
 
         if (!file_exists($viewPath)) {
             die('Business page not found');
         }
 
-        // Admin & Manager wanaweza kuona zote
+        // ================================
+        // ADMIN & MANAGER ACCESS
+        // ================================
         if ($user['role'] === 'admin' || $user['role'] === 'manager') {
 
             $this->view("business/{$slug}", [
@@ -32,14 +42,34 @@ class BusinessController extends Controller
             return;
         }
 
-        // Staff lazima business yake ilingane
+        // ================================
+        // STAFF ACCESS CONTROL
+        // ================================
         if (
             $user['role'] === 'staff' &&
             strtolower($user['department']) === $slug
         ) {
 
+            $products = [];
+
+            // Only Bandani loads products for order form
+            if ($slug === 'bandani') {
+
+                $db = new Database();
+
+                $stmt = $db->query(
+                    "SELECT id, name
+                     FROM products
+                     WHERE is_active = 1
+                     ORDER BY name ASC"
+                );
+
+                $products = $stmt->fetchAll();
+            }
+
             $this->view("business/{$slug}", [
-                'pageTitle' => ucfirst($slug) . ' Dashboard'
+                'pageTitle' => ucfirst($slug) . ' Dashboard',
+                'products'  => $products ?? []
             ], 'staff');
 
             return;
@@ -47,6 +77,4 @@ class BusinessController extends Controller
 
         die('Access Denied');
     }
-
-    
 }
