@@ -1,9 +1,20 @@
 RewriteEngine On
 
-# Allow direct access to existing files (CSS, JS, images)
+# ===============================
+# FORCE HTTPS
+# ===============================
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# ===============================
+# ALLOW EXISTING FILES
+# ===============================
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# Route everything else to index.php
+# ===============================
+# ROUTE TO INDEX.PHP
+# ===============================
 RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+
