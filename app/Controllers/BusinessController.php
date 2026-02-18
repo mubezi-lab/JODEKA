@@ -2,14 +2,8 @@
 
 class BusinessController extends Controller
 {
-    /**
-     * Handle all business dashboard pages dynamically
-     */
     public function index($slug = null)
     {
-        // ================================
-        // AUTH CHECK
-        // ================================
         if (!isset($_SESSION['user'])) {
             $this->redirect('/');
         }
@@ -21,18 +15,13 @@ class BusinessController extends Controller
         $slug = strtolower($slug);
         $user = $_SESSION['user'];
 
-        // ================================
-        // VERIFY VIEW EXISTS
-        // ================================
         $viewPath = BASE_PATH . "/views/business/{$slug}.php";
 
         if (!file_exists($viewPath)) {
             die('Business page not found');
         }
 
-        // ================================
-        // ADMIN & MANAGER ACCESS
-        // ================================
+        // Admin & Manager
         if ($user['role'] === 'admin' || $user['role'] === 'manager') {
 
             $this->view("business/{$slug}", [
@@ -42,20 +31,23 @@ class BusinessController extends Controller
             return;
         }
 
-        // ================================
-        // STAFF ACCESS CONTROL
-        // ================================
-        if (
-            $user['role'] === 'staff' &&
-            strtolower($user['department']) === $slug
-        ) {
+        // STAFF ACCESS (FIXED)
+        if ($user['role'] === 'staff' && !empty($user['department_id'])) {
+
+            $db = new Database();
+
+            $dept = $db->query(
+                "SELECT name FROM departments WHERE id = ?",
+                [$user['department_id']]
+            )->fetch();
+
+            if (!$dept || strtolower($dept['name']) !== $slug) {
+                die('Access Denied');
+            }
 
             $products = [];
 
-            // Only Bandani loads products for order form
             if ($slug === 'bandani') {
-
-                $db = new Database();
 
                 $stmt = $db->query(
                     "SELECT id, name

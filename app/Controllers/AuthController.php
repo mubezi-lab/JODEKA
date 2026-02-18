@@ -5,8 +5,7 @@ class AuthController extends Controller
     /**
      * ============================================================
      * INDEX
-     * Shows login page.
-     * If already logged in → redirect based on role.
+     * Shows login page or redirects logged user
      * ============================================================
      */
     public function index()
@@ -23,11 +22,6 @@ class AuthController extends Controller
     /**
      * ============================================================
      * LOGIN HANDLER
-     * - Validates request method
-     * - Validates CSRF
-     * - Applies brute force protection
-     * - Verifies credentials
-     * - Creates secure session
      * ============================================================
      */
     public function login()
@@ -52,17 +46,16 @@ class AuthController extends Controller
             return;
         }
 
-        // ========================================================
-        // BRUTE FORCE PROTECTION (Max 5 attempts, Lock 10 minutes)
-        // ========================================================
-
+        // ===============================
+        // BRUTE FORCE PROTECTION
+        // ===============================
         $attemptModel = $this->model('LoginAttempt');
         $attempt = $attemptModel->find($ip, $email);
 
         if ($attempt && $attempt['attempts'] >= 5) {
 
             $lastAttempt = strtotime($attempt['last_attempt']);
-            $lockTime = 10 * 60; // 10 minutes
+            $lockTime = 10 * 60;
 
             if (time() - $lastAttempt < $lockTime) {
                 $this->view('auth/login', [
@@ -71,39 +64,36 @@ class AuthController extends Controller
                 ]);
                 return;
             } else {
-                // Reset after lock period passes
                 $attemptModel->reset($ip, $email);
             }
         }
 
-        // ========================================================
-        // VERIFY USER CREDENTIALS
-        // ========================================================
-
+        // ===============================
+        // VERIFY USER
+        // ===============================
         $userModel = $this->model('User');
         $user = $userModel->findByEmail($email);
 
         if ($user && password_verify($password, $user['password'])) {
 
-            // Successful login → clear attempts
             $attemptModel->reset($ip, $email);
 
             session_regenerate_id(true);
             unset($_SESSION['csrf_token']);
 
+            // 🔥 IMPORTANT FIX: store department_id not department name
             $_SESSION['user'] = [
-                'id'         => $user['id'],
-                'name'       => $user['name'],
-                'email'      => $user['email'],
-                'role'       => $user['role'],
-                'department' => $user['department'] ?? null
+                'id'            => $user['id'],
+                'name'          => $user['name'],
+                'email'         => $user['email'],
+                'role'          => $user['role'],
+                'department_id' => $user['department_id'] ?? null
             ];
 
             $this->redirectUser($_SESSION['user']);
 
         } else {
 
-            // Failed login → increment attempts
             if ($attempt) {
                 $attemptModel->increment($attempt['id']);
             } else {
@@ -119,8 +109,7 @@ class AuthController extends Controller
 
     /**
      * ============================================================
-     * ROLE-BASED REDIRECT
-     * Centralized dashboard routing
+     * ROLE BASED REDIRECT
      * ============================================================
      */
     private function redirectUser($user)
@@ -133,26 +122,21 @@ class AuthController extends Controller
             $this->redirect('manager');
         }
 
-        if ($user['role'] === 'staff' && $user['department']) {
+        if ($user['role'] === 'staff' && $user['department_id']) {
 
-            switch ($user['department']) {
+            // Get department name safely
+            $db = new Database();
+            $dept = $db->query(
+                "SELECT name FROM departments WHERE id = ?",
+                [$user['department_id']]
+            )->fetch();
 
-                case 'Bandani':
-                    $this->redirect('bandani');
-                    break;
-
-                case 'Sokoni':
-                    $this->redirect('sokoni');
-                    break;
-
-                case 'Stand':
-                    $this->redirect('stand');
-                    break;
-
-                default:
-                    session_destroy();
-                    die('No dashboard assigned to your department.');
+            if (!$dept) {
+                session_destroy();
+                die('No dashboard assigned to your department.');
             }
+
+            $this->redirect(strtolower($dept['name']));
         }
 
         $this->redirect('auth/index');
@@ -161,7 +145,6 @@ class AuthController extends Controller
     /**
      * ============================================================
      * LOGOUT
-     * Securely destroys session and cookie
      * ============================================================
      */
     public function logout()
